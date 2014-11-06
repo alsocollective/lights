@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0,maximum-scale=10.0,user-scalable=no">
+	<title></title>
+	<script type="text/javascript" src="/public/jquery.js"></script>
+	<script type="text/javascript" src="/public/jquery.panelSnap.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		var socket = new io.connect('192.168.0.107:3000');
+	</script>
+	<style type="text/css">
+	html,body{
+		margin: 0;
+		padding: 0;		
+		height: 100%;
+		width: 100%;
+		font-family: sans-serif;
+		color: #fff;
+		-webkit-font-smoothing: antialiased;
+
+	}
+	.slide{
+		width: 100%;
+		height: 99%;		
+		border-bottom:20px solid black;
+		-webkit-transition: background-color 1s ease;
+		-moz-transition: background-color 1s ease;
+		-ms-transition: background-color 1s ease;
+		-o-transition: background-color 1s ease;
+		transition: background-color 1s ease;	
+		background-color: #bdc3c7;
+	}
+	#container{
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		width: 100%;
+	}
+	#slide1{
+		/*background-color: #00ff00;*/
+	}
+	#slide2{
+		/*background-color: #ff0000;*/
+	}
+	#slide3{
+		/*background-color: #0000ff;*/
+		display: table;
+	}
+	#slide3 > div{
+		display: table-cell;
+		vertical-align: middle;
+	}
+
+	.slider{
+		height: 33.3333333333%;
+		width: 100%;
+		background-color: transparent;
+		overflow: hidden;
+	}
+	.slider > div{
+		height: 100%;	
+		background-color: #fff;	
+		-webkit-transition: width 1s ease;
+		-moz-transition: width 1s ease;
+		-ms-transition: width 1s ease;
+		-o-transition: width 1s ease;
+		transition: width 1s ease;	
+		width: 1%;	
+	}
+
+	.button{
+		min-width: 25%;
+		width: 50px;
+		padding: 2em;
+		margin: 25px auto;
+		background-color: rgba(0,0,0,0.5);
+		text-align: center;
+	}
+	.button:hover{
+		background-color: rgba(0,0,0,1);
+		-webkit-transition: background-color 1s ease;
+		-moz-transition: background-color 1s ease;
+		-ms-transition: background-color 1s ease;
+		-o-transition: background-color 1s ease;
+		transition: background-color 1s ease;			
+	}
+	h2{
+		margin: 0;
+		padding: 0;
+	}
+	.inputcontainer{
+		text-align: center;
+	}
+	.inputcontainer input{
+		font-size: 27px;
+		padding: 0.9em;
+		background-color: rgba(0,0,0,0.5);
+		border: none;
+		color: #fff;
+	}
+/*
+	#red1 > div{
+		-webkit-box-shadow: 5px 0px 100px 0px #0f0;
+		-moz-box-shadow:    5px 0px 100px 0px #0f0;
+		box-shadow:         5px 0px 100px 0px #0f0;
+	}*/
+
+	</style>
+</head>
+<body>
+
+<section class="slide" id="slide1">
+	<div class="slider" id="red1">
+		<div></div>
+	</div>
+	<div class="slider" id="green1">
+		<div></div>
+	</div>
+	<div class="slider" id="blue1">
+		<div></div>
+	</div>		
+</section>
+<section class="slide" id="slide2">
+	<div class="slider" id="red2">
+		<div></div>
+	</div>
+	<div class="slider" id="green2">
+		<div></div>
+	</div>
+	<div class="slider" id="blue2">
+		<div></div>
+	</div>	
+</section>
+<section class="slide" id="slide3">
+	<div >
+		<div class="button" id="fade1"><h2>Fade 1</h2></div>
+		<div class="button" id="fade2"><h2>Fade 2</h2></div>
+		<div class="button" id="fade3"><h2>Fade Both</h2></div>
+		<div class="inputcontainer"><input type="number" min="0" max="255" id="speed"></div>
+	</div>
+</section>
+<script type="text/javascript">
+
+jQuery(function($) {
+	$('body').panelSnap();
+});
+$("window").resize(function(){
+	$(".slide").css({"height":$(window).outerHeight()})
+})
+
+var windowWidth = $(window).outerWidth();
+var colourSets = {
+	"red1":0,
+	"green1":0,
+	"blue1":0,
+
+	"red2":0,
+	"green2":0,
+	"blue2":0,
+}
+
+$(".slider").on("click",function(event){
+	event.preventDefault();
+	var percentage = (event.pageX/windowWidth*100),
+		myint = Math.floor(percentage*255/100);
+	if(myint < 0){
+		myint = 1;
+	}
+	$(this).children()[0].style.width =  percentage+"%";
+	colourSets[this.id] = myint;
+	socket.emit(this.id, myint);		
+	setColour(this.parentNode,this.id.slice(-1));
+	return false;
+});
+
+function setColour(node,number){
+	var r,g,b;
+	if(number == 1 || number == "1" ){
+		r = colourSets["red1"];
+		g = colourSets["green1"];
+		b = colourSets["blue1"];
+	}else {
+		r = colourSets["red2"];
+		g = colourSets["green2"];
+		b = colourSets["blue2"];
+	}
+	console.log(r,g,b);
+
+	node.style.backgroundColor = "rgb("+r+","+g+","+b+")";
+}
+
+
+function numberToPercent(number){
+	return number/windowWidth;
+}
+
+	$("input").on("change",function(){
+		socket.emit(this.id, this.value);	
+	});
+	$(".button").on("click",function(){
+		socket.emit(this.id, 0);		
+	});
+
+function storeAndSet(id, number){
+	var percent = Math.floor(number/255*100);
+	console.log("-------- start --------")
+	console.log(percent);
+	console.log(number);
+	console.log("-------- end -------")
+	colourSets[id] = number;
+	$("#"+id).children()[0].style.width =  percent+"%";
+}
+
+	socket.on('setup',function(msg){
+
+		storeAndSet("red1",msg.red1);
+		storeAndSet("green1",msg.green1);
+		storeAndSet("blue1",msg.blue1);
+
+		storeAndSet("red2",msg.red2);
+		storeAndSet("green2",msg.green2);
+		storeAndSet("blue2",msg.blue2);
+
+		speed.value = msg.speed;	
+		setColour(red1.parentNode,1);
+		setColour(red2.parentNode,2);
+		// setColour();
+	});
+	socket.on('red1',function(msg){
+		storeAndSet("red1",msg.value);
+		setColour(red1.parentNode,1);
+	});
+	socket.on('green1',function(msg){
+		storeAndSet("green1",msg.value);	
+		setColour(red1.parentNode,1);
+	});
+	socket.on('blue1',function(msg){
+		storeAndSet("blue1",msg.value);
+		setColour(blue1.parentNode,1);
+	});
+	socket.on('red2',function(msg){
+		storeAndSet("red2",msg.value);
+		setColour(red2.parentNode);
+	});
+	socket.on('green2',function(msg){
+		storeAndSet("green2",msg.value);		
+		setColour(green2.parentNode);
+	});
+	socket.on('blue2',function(msg){
+		storeAndSet("blue2",msg.value);
+		setColour(blue2.parentNode);
+	});	
+	socket.on('speed',function(msg){
+		speed.value = msg.value;
+	});
+
+</script>
+</body>
+</html>

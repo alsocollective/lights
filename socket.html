@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0,maximum-scale=10.0,user-scalable=no">
+	<title></title>
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		var socket = new io.connect('169.254.17.191:3000');
+	</script>
+
+	<script type="text/javascript" src="/public/jquery.js"></script>	
+	
+	<link rel="stylesheet" type="text/css" href="/public/rangeslider.css">
+
+	<script type="text/javascript" src="/public/rangeslider.min.js"></script>
+	<style type="text/css">
+		.colour-block{
+			display: inline-block;
+			width: 200px;
+			height: 200px;
+			color: #000;
+		}
+	</style>
+	
+</head>
+<body>
+	<div>This is our socket.html file</div>
+	<input type="range" min="1" max="255" id="red1">
+	<input type="range" min="1" max="255" id="green1">
+	<input type="range" min="1" max="255" id="blue1">
+	<div id="colourblock1" class="colour-block" style="#000000;"></div>
+	<button id="fade1">fade 1</button>
+	<hr>
+	<div>This is our socket.html file</div>
+	<input type="range" min="1" max="255" id="red2">
+	<input type="range" min="1" max="255" id="green2">
+	<input type="range" min="1" max="255" id="blue2">
+	<div id="colourblock2" class="colour-block" style="#000000;"></div>
+	<button id="fade2">fade 2</button>	
+	<hr>
+	<input type="number" min="0" max="255" id="speed">
+	<button id="fade3">fade 3</button>	
+
+
+
+	<script type="text/javascript">
+	$("input").on("change",function(){
+		socket.emit(this.id, this.value);	
+		setColour();
+		// console.log(this.id+": "+this.value)	
+	});
+	$("button").on("click",function(){
+		socket.emit(this.id, 0);		
+	});
+
+	socket.on('setup',function(msg){
+		console.log(msg)
+		red1.value = msg.red1;	
+		green1.value = msg.green1;	
+		blue1.value = msg.blue1;	
+
+		red2.value = msg.red2;	
+		green2.value = msg.green2;	
+		blue2.value = msg.blue2;	
+
+		speed.value = msg.speed;	
+		setColour();
+	});
+	socket.on('red1',function(msg){
+		// console.log("red1: "+msg);
+		red1.value = msg.value;
+		setColour();
+	});
+	socket.on('green1',function(msg){
+		// console.log("green1: "+msg);		
+		green1.value = msg.value;
+		setColour();
+	});
+	socket.on('blue1',function(msg){
+		// console.log("blue1: "+msg);
+		blue1.value = msg.value;
+		setColour();
+	});
+	socket.on('red2',function(msg){
+		// console.log("red1: "+msg);
+		red2.value = msg.value;
+		setColour();
+	});
+	socket.on('green2',function(msg){
+		// console.log("green1: "+msg);		
+		green2.value = msg.value;
+		setColour();
+	});
+	socket.on('blue2',function(msg){
+		// console.log("blue1: "+msg);
+		blue2.value = msg.value;
+		setColour();
+	});	
+	socket.on('speed',function(msg){
+		// console.log("speed: "+msg);
+		speed.value = msg.value;
+	});
+
+	function setColour(){
+		console.log(rgbToHex(red1.value,green1.value,blue1.value));
+		colourblock1.style.backgroundColor = rgbToHex(red1.value,green1.value,blue1.value);
+		colourblock2.style.backgroundColor = rgbToHex(red2.value,green2.value,blue2.value);
+	}
+
+	function rgbToHex(r, g, b) {
+		return "rgb("+r+","+g+","+b+")"
+	}
+
+	</script>
+</body>
+</html>
